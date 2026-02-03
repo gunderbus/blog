@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cole Gundermann's Blog of Mathematics</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Playfair Display', serif;
+        }
+        .font-sans {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Simplified Lucide Icon Component for CDN usage
+        const Icon = ({ name, size = 24, className = "" }) => {
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [name]);
+            return <i data-lucide={name} className={className} style={{ width: size, height: size }}></i>;
+        };
+
+        const INITIAL_POSTS = [
+            {
+                "id": 1,
+                "title": "On the Distribution of Primes",
+                "category": "Number Theory",
+                "excerpt": "Exploring the nuances of the Prime Number Theorem and the beauty of the Riemann Zeta Function.",
+                "content": "The distribution of prime numbers is a central theme in number theory. While primes appear to be distributed randomly, they follow a strict density governed by the logarithmic integral function. The Riemann Hypothesis, perhaps the most famous unsolved problem in mathematics, suggests that the zeros of the Riemann Zeta function all lie on a specific critical line, which would provide the tightest possible bound for the error term in the prime number theorem. Understanding these 'atoms' of mathematics requires a deep dive into complex analysis and the behavior of the zeta function along the critical strip.",
+                "date": "2024-05-12"
+            },
+            {
+                "id": 2,
+                "title": "Symmetry and Group Theory",
+                "category": "Algebra",
+                "excerpt": "An introduction to abstract algebra through the lens of symmetry groups and permutations.",
+                "content": "In abstract algebra, a group is a set equipped with a binary operation that satisfies four fundamental axioms: closure, associativity, identity, and invertibility. Group theory allows us to study symmetry in a formal mathematical framework. For example, the symmetries of a square form the Dihedral Group D4. This transition from 'calculating' to 'understanding structures' is what defines modern algebraic thought. By abstracting the properties of symmetry, we can solve polynomial equations and understand the fundamental forces of physics.",
+                "date": "2024-05-15"
+            },
+            {
+                "id": 3,
+                "title": "The Incompleteness of Formal Systems",
+                "category": "Logic",
+                "excerpt": "Reflections on Gödel's First Incompleteness Theorem and its impact on mathematical foundations.",
+                "content": "Kurt Gödel shattered the dream of a complete and consistent set of axioms for all of mathematics. His first incompleteness theorem states that in any consistent formal system that is capable of expressing basic arithmetic, there are true statements that cannot be proven within that system. This realization forced mathematicians to reconsider what 'truth' means in a formal context. It suggests that human intuition and mathematical reality may always transcend the boundaries of any purely mechanical proof system.",
+                "date": "2024-05-18"
+            }
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('feed');
+            const [selectedPost, setSelectedPost] = useState(null);
+            const [posts] = useState(INITIAL_POSTS);
+            const [copied, setCopied] = useState(false);
+
+            const [newPost, setNewPost] = useState({
+                title: '',
+                category: 'Number Theory',
+                excerpt: '',
+                content: ''
+            });
+            const [generatedCode, setGeneratedCode] = useState('');
+
+            useEffect(() => {
+                if (window.lucide) window.lucide.createIcons();
+            }, [activeTab]);
+
+            const handleReadPost = (post) => {
+                setSelectedPost(post);
+                setActiveTab('reading');
+                window.scrollTo(0, 0);
+            };
+
+            const handleBackToFeed = () => {
+                setActiveTab('feed');
+                setSelectedPost(null);
+            };
+
+            const handleGenerate = (e) => {
+                e.preventDefault();
+                const postObj = {
+                    id: Date.now(),
+                    ...newPost,
+                    date: new Date().toISOString().split('T')[0]
+                };
+                setGeneratedCode(JSON.stringify(postObj, null, 2));
+                setCopied(false);
+            };
+
+            const copyToClipboard = () => {
+                const text = `${generatedCode},`;
+                navigator.clipboard.writeText(text).then(() => {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                });
+            };
+
+            return (
+                <div className="min-h-screen bg-[#090c08] text-[#b9c6ae] selection:bg-[#757083] selection:text-white">
+                    <nav className="border-b border-[#474056] sticky top-0 bg-[#090c08]/90 backdrop-blur-sm z-50">
+                        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={handleBackToFeed}>
+                                <div className="bg-[#474056] p-2 rounded-lg shadow-inner flex items-center justify-center">
+                                    <Icon name="sigma" size={24} className="text-[#b9c6ae]" />
+                                </div>
+                                <div className="flex flex-col font-sans">
+                                    <span className="text-sm font-bold tracking-[0.2em] text-[#757083] uppercase leading-tight">Gundermann</span>
+                                    <span className="text-xl font-light tracking-tight text-[#b9c6ae]">Blog of Mathematics</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-1 bg-[#090c08] border border-[#474056] p-1 rounded-md font-sans">
+                                <button onClick={handleBackToFeed} className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded transition-all ${activeTab === 'feed' || activeTab === 'reading' ? 'bg-[#474056] text-[#b9c6ae]' : 'text-[#8a95a5] hover:text-[#b9c6ae]'}`}>Home Feed</button>
+                                <button onClick={() => setActiveTab('admin')} className={`px-4 py-2 text-xs font-bold uppercase tracking-widest rounded transition-all ${activeTab === 'admin' ? 'bg-[#474056] text-[#b9c6ae]' : 'text-[#8a95a5] hover:text-[#b9c6ae]'}`}>Dev Admin Tool</button>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div className="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
+                        <aside className="lg:col-span-3 space-y-8 font-sans">
+                            <section className="bg-[#474056]/10 border border-[#474056] p-6 rounded-xl relative overflow-hidden group">
+                                <div className="absolute -right-4 -top-4 text-[#474056]/20 group-hover:text-[#474056]/40 transition-colors">
+                                    <Icon name="calculator" size={120} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 text-[#757083] mb-4">
+                                        <Icon name="user" size={16} />
+                                        <span className="text-xs font-bold uppercase tracking-widest">Author Profile</span>
+                                    </div>
+                                    <h2 className="text-2xl font-light mb-1 text-[#b9c6ae]">Cole Gundermann</h2>
+                                    <p className="text-[#757083] text-sm mb-6 flex items-center gap-2">
+                                        <Icon name="hash" size={14} /> 14-year-old Mathematician
+                                    </p>
+                                    <p className="text-[#8a95a5] text-sm leading-relaxed italic">
+                                        "Pure mathematics is, in its way, the poetry of logical ideas." Focused on the structural beauty of Number Theory and Algebra.
+                                    </p>
+                                </div>
+                            </section>
+
+                            <section className="space-y-4">
+                                <h3 className="text-[#757083] text-xs font-bold uppercase tracking-[0.2em] px-2">Disciplines</h3>
+                                <div className="space-y-1">
+                                    {['Number Theory', 'Algebra', 'Logic', 'Topology'].map((cat) => (
+                                        <button key={cat} className="w-full flex items-center justify-between px-3 py-2 text-sm text-[#8a95a5] hover:bg-[#474056]/20 hover:text-[#b9c6ae] rounded-lg transition-colors group">
+                                            <span>{cat}</span>
+                                            <Icon name="chevron-right" size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                        </aside>
+
+                        <main className="lg:col-span-9">
+                            {activeTab === 'feed' && (
+                                <div className="space-y-20">
+                                    {posts.map((post) => (
+                                        <article key={post.id} className="group relative">
+                                            <header className="mb-4">
+                                                <div className="flex items-center gap-4 text-xs font-sans font-bold uppercase tracking-[0.15em] text-[#757083] mb-2">
+                                                    <span className="text-[#b9c6ae]">{post.category}</span>
+                                                    <span className="w-1 h-1 rounded-full bg-[#474056]"></span>
+                                                    <span>{post.date}</span>
+                                                </div>
+                                                <h2 onClick={() => handleReadPost(post)} className="text-4xl font-light text-[#b9c6ae] group-hover:text-white transition-colors tracking-tight leading-tight cursor-pointer">
+                                                    {post.title}
+                                                </h2>
+                                            </header>
+                                            <p className="text-[#8a95a5] text-lg leading-relaxed mb-6">
+                                                {post.excerpt}
+                                            </p>
+                                            <button onClick={() => handleReadPost(post)} className="flex items-center gap-2 text-[#757083] group-hover:text-[#b9c6ae] transition-colors cursor-pointer text-sm font-sans font-bold uppercase tracking-widest">
+                                                <span>Read Investigation</span>
+                                                <Icon name="chevron-right" size={16} className="group-hover:translate-x-1 transition-transform" />
+                                            </button>
+                                            <div className="mt-12 h-px bg-gradient-to-r from-[#474056] to-transparent w-full"></div>
+                                        </article>
+                                    ))}
+                                </div>
+                            )}
+
+                            {activeTab === 'reading' && selectedPost && (
+                                <div className="space-y-8">
+                                    <button onClick={handleBackToFeed} className="flex items-center gap-2 text-[#757083] hover:text-[#b9c6ae] transition-colors text-xs font-sans font-bold uppercase tracking-widest mb-4">
+                                        <Icon name="arrow-left" size={16} />
+                                        Back to Feed
+                                    </button>
+                                    <article>
+                                        <header className="mb-12">
+                                            <div className="flex items-center gap-4 text-xs font-sans font-bold uppercase tracking-[0.15em] text-[#757083] mb-4">
+                                                <span className="text-[#b9c6ae] border border-[#b9c6ae]/20 px-2 py-1 rounded">{selectedPost.category}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Icon name="calendar" size={14} />
+                                                    <span>{selectedPost.date}</span>
+                                                </div>
+                                            </div>
+                                            <h1 className="text-5xl font-light text-[#b9c6ae] tracking-tight leading-tight mb-6">
+                                                {selectedPost.title}
+                                            </h1>
+                                            <div className="h-1 w-24 bg-[#757083]"></div>
+                                        </header>
+                                        <div className="max-w-none">
+                                            <p className="text-[#b9c6ae] text-xl leading-relaxed first-letter:text-5xl first-letter:font-bold first-letter:mr-3 first-letter:float-left first-letter:text-[#757083]">
+                                                {selectedPost.content}
+                                            </p>
+                                        </div>
+                                    </article>
+                                </div>
+                            )}
+
+                            {activeTab === 'admin' && (
+                                <div className="bg-[#090c08] border border-[#474056] rounded-xl overflow-hidden font-sans">
+                                    <div className="bg-[#474056]/20 p-6 border-b border-[#474056] flex items-center gap-3">
+                                        <Icon name="terminal" size={20} className="text-[#757083]" />
+                                        <h2 className="text-sm font-bold uppercase tracking-widest">Post Generator Engine</h2>
+                                    </div>
+                                    <div className="p-8">
+                                        <form onSubmit={handleGenerate} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="md:col-span-2 flex flex-col gap-2">
+                                                <label className="text-xs uppercase font-bold tracking-widest text-[#757083]">Post Title</label>
+                                                <input className="bg-[#090c08] border border-[#474056] p-3 rounded text-[#b9c6ae] outline-none" value={newPost.title} onChange={e => setNewPost({...newPost, title: e.target.value})} required />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-xs uppercase font-bold tracking-widest text-[#757083]">Category</label>
+                                                <select className="bg-[#090c08] border border-[#474056] p-3 rounded text-[#b9c6ae] outline-none" value={newPost.category} onChange={e => setNewPost({...newPost, category: e.target.value})}>
+                                                    <option>Number Theory</option>
+                                                    <option>Algebra</option>
+                                                    <option>Logic</option>
+                                                    <option>Topology</option>
+                                                    <option>Linear Algebra</option>
+                                                </select>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-xs uppercase font-bold tracking-widest text-[#757083]">Excerpt (Short)</label>
+                                                <input className="bg-[#090c08] border border-[#474056] p-3 rounded text-[#b9c6ae] outline-none" value={newPost.excerpt} onChange={e => setNewPost({...newPost, excerpt: e.target.value})} required />
+                                            </div>
+                                            <div className="md:col-span-2 flex flex-col gap-2">
+                                                <label className="text-xs uppercase font-bold tracking-widest text-[#757083]">Full Content</label>
+                                                <textarea rows="6" className="bg-[#090c08] border border-[#474056] p-4 rounded text-[#b9c6ae] outline-none" value={newPost.content} onChange={e => setNewPost({...newPost, content: e.target.value})} required />
+                                            </div>
+                                            <button type="submit" className="md:col-span-2 py-4 bg-[#b9c6ae] text-[#090c08] font-bold uppercase tracking-[0.3em] hover:bg-white transition-all">Generate JavaScript Object</button>
+                                        </form>
+                                        {generatedCode && (
+                                            <div className="mt-12 space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-xs uppercase font-bold tracking-widest text-[#757083]">Output (Append to INITIAL_POSTS)</h3>
+                                                    <button onClick={copyToClipboard} className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#b9c6ae] hover:text-white">
+                                                        <Icon name={copied ? "check" : "copy"} size={14} />
+                                                        {copied ? 'Copied' : 'Copy Object'}
+                                                    </button>
+                                                </div>
+                                                <pre className="bg-[#0c0f0b] border border-[#757083]/30 p-6 rounded-lg overflow-x-auto text-[13px] text-[#8a95a5] font-mono leading-relaxed">
+                                                    {generatedCode},
+                                                </pre>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                    </div>
+
+                    <footer className="mt-24 border-t border-[#474056] py-16 bg-[#090c08] font-sans">
+                        <div className="max-w-6xl mx-auto px-6 flex flex-col items-center">
+                            <Icon name="sigma" size={32} className="text-[#474056] mb-6" />
+                            <p className="text-xs font-bold uppercase tracking-[0.4em] text-[#757083] mb-2">Mathematics &middot; Logic &middot; Foundation</p>
+                            <p className="text-xs text-[#474056]">Cole Gundermann &bull; MMXIV</p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
